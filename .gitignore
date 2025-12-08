@@ -1,1 +1,11 @@
 *.tflite
+
+*rubbish*
+
+
+# */*onnx_model*/
+model_tf
+!*.onnx
+/model2h/**/*.h
+
+**/ready_dataset/

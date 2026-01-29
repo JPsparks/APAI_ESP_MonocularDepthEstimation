@@ -24,9 +24,9 @@ class FileManager {
     void listDir(const char * dirname, uint8_t levels); //mainly a dev function
 
     bool createDir(const char * path);
-    bool removeDir(const char * path);
+    bool removeDir(const char * path, bool inRecursiveWay);
 
-    void readFile(const char * path); //for now this function is simply copied by provided tutorial (see also Freenove tutorials)
+    void readFile(const char * path); //this function is simply copy-paste by provided tutorial (see also Freenove tutorials, or "legacy lefted" code)
     
     bool writeFile(const char * path, const char * message);
     bool appendFile(const char * path, const char * message);
@@ -36,13 +36,18 @@ class FileManager {
     void testFileIO(const char * path); //another dev function
 
     bool writejpg(const char * path, const uint8_t *buf, size_t size);
-    int readFileNum(const char * dirname);
+    int  readFileNum(const char * dirname);
     bool writebmp(const char* path, uint8_t* rgb_data, size_t width, size_t height, int channels);
 
   private:
     fs::SDMMCFS &getFS() {
         return SD_MMC; 
     }
+
+    File getRootPointer(const char * path);
+
+    bool plainRemoveDir(const char * path);
+    bool recursiveRemoveDir(const char * path);
 };
 
 

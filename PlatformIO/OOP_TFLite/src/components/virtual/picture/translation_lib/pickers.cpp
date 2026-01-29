@@ -5,13 +5,11 @@ Picture* byXtoY(Picture* by, int scale_factor, int new_rows, int new_cols, bool 
     if (!by || !by->get_raw_data() || by->bytes_per_pixel() == 0 ||
         (int)by->get_width() < new_cols * scale_factor ||
         (int)by->get_height() < new_rows * scale_factor) {
-        // Here will be added more error handling
         return nullptr;
     }
 
     // For simplicity, we only handle addressable and uncompressed formats
     if (by->get_format() == JPEG || by->get_format() == YUV420 || by->get_format() == RAW) {
-        // Error handling for unsupported formats goes here
         return nullptr;
     }
 
@@ -23,7 +21,6 @@ Picture* byXtoY(Picture* by, int scale_factor, int new_rows, int new_cols, bool 
     // The resized image will have 'new_rows * new_cols' pixels.
     uint8_t* res_raw_data = (uint8_t*)malloc(new_rows * new_cols * bpp * sizeof(uint8_t));
     if (res_raw_data == nullptr) {
-        // other window for err handling
         return nullptr;
     }
 
@@ -72,7 +69,7 @@ Picture* byXtoY(Picture* by, int scale_factor, int new_rows, int new_cols, bool 
                 // The index in the 1D buffer is: (row_index * width + column_index) * bytes_per_pixel
                 size_t dest_index = (i * new_cols + j) * bpp;
                 
-                // Copia i byte del pixel
+                // Copy bytes per pixel
                 for (size_t k = 0; k < bpp; k++) {
                     res_raw_data[dest_index + k] = original_pixel[k];
                 }
@@ -80,7 +77,7 @@ Picture* byXtoY(Picture* by, int scale_factor, int new_rows, int new_cols, bool 
                 // Error handling (the pixel shouldn't be nullptr if initial checks pass,
                 // but in case of special formats or issues with get_pixel, fill with black or other value)
                 for (size_t k = 0; k < bpp; k++) {
-                    res_raw_data[(i * new_cols + j) * bpp + k] = 0; // Black or 0 depending on the format
+                    res_raw_data[(i * new_cols + j) * bpp + k] = 0;
                 }
             }
         }
@@ -103,4 +100,5 @@ Picture* byXtoY(Picture* by, int scale_factor, int new_rows, int new_cols, bool 
 Picture* pick_by240to48(Picture* by, bool haveToCenter) {
 
     return byXtoY(by, 5, 48, 48, haveToCenter);
+    
 }

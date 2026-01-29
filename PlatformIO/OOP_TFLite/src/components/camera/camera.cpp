@@ -1,8 +1,8 @@
 #include "camera.h"
 
-Camera::Camera(int config){
-  this->config = config; //dummy example to evaluate eventually witch feature let me modifiable by extern source
-}
+Camera::Camera(){
+  
+};
 
 bool Camera::cameraSetup(void) {
 
@@ -28,22 +28,25 @@ bool Camera::cameraSetup(void) {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 10000000;
   
-  config.frame_size = FRAMESIZE_240X240; // FRAMESIZE_UXGA;   // ---> FRAMESIZE_240X240
-  config.pixel_format = PIXFORMAT_JPEG; //PIXFORMAT_RGB888;   //PIXFORMAT_JPEG; // ---> RGB888    // for streaming
+  config.frame_size = FRAMESIZE_240X240; // let's fix directly this, the best handshake between the used network and image resolution
+  config.pixel_format = PIXFORMAT_JPEG;  // should be PIXFORMAT_RGB888, but this ESP is not enought capable, it is needed a decompression after the photo
+  
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
   config.fb_location = CAMERA_FB_IN_PSRAM;
   config.jpeg_quality = 12;
   config.fb_count = 1;
   
+  // directly from tutorials:
   // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
   // for larger pre-allocated frame buffer.
   if(psramFound()){
-    config.jpeg_quality = 10;
+    config.jpeg_quality = 8;
     config.fb_count = 2;
     config.grab_mode = CAMERA_GRAB_LATEST;
   } else {
+    // directly from tutorials:
     // Limit the frame size when PSRAM is not available
-    config.frame_size = FRAMESIZE_SVGA;
+    // config.frame_size = FRAMESIZE_SVGA;
     config.fb_location = CAMERA_FB_IN_DRAM;
   }
 
@@ -52,7 +55,7 @@ bool Camera::cameraSetup(void) {
   if (err != ESP_OK) {
     String to_log = "Camera init failed with error 0x" + String(err);
     log(to_log, ERROR, CAMERA_LOG_PERMISSION);
-    return 0;
+    return false;
   }
 
   sensor_t * s = esp_camera_sensor_get();
@@ -123,10 +126,17 @@ bool Camera::take_picture(void){
   this->free_my_buffer();
 
   this->cam_buffer = esp_camera_fb_get();
-  this->last_pick_fb = this->clone_picture(this->cam_buffer);
+  if (this->cam_buffer != nullptr) {
+    this->last_pick_fb = this->clone_picture(this->cam_buffer); 
+  } else {
+    return false;
+  }
+  // Non tenerlo "in ostaggio" fino alla prossima foto.
+  this->free_cam_buffer();
 
   return true;
 }
+
 
 camera_fb_t* Camera::get_picture(void){
   return this->last_pick_fb;

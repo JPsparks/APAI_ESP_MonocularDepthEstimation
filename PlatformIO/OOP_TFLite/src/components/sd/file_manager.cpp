@@ -1,7 +1,6 @@
 #include "file_manager.h"
 
-FileManager::FileManager(){
-
+FileManager::FileManager() {
 }
 
 bool FileManager::sdmmcInit(void){
@@ -34,45 +33,10 @@ bool FileManager::sdmmcInit(void){
     }
     
     uint64_t cardSize = fs.cardSize() / (1024 * 1024);
-    Serial.printf("SD_MMC Card Size: %lluMB\n", cardSize);                      //TODO
-    Serial.printf("Total space: %lluMB\r\n", fs.totalBytes() / (1024 * 1024));  //TODO
-    Serial.printf("Used space: %lluMB\r\n", fs.usedBytes() / (1024 * 1024));    //TODO
+    Serial.printf("SD_MMC Card Size: %lluMB\n", cardSize);  
+    Serial.printf("Total space: %lluMB\r\n", fs.totalBytes() / (1024 * 1024));
+    Serial.printf("Used space: %lluMB\r\n", fs.usedBytes() / (1024 * 1024));
     return true;
-}
-
-
-void FileManager::listDir(const char * dirname, uint8_t levels){
-    
-    fs::FS &fs = this->getFS();
-
-    Serial.printf("Listing directory: %s\n", dirname);
-
-    File root = fs.open(dirname);
-    if(!root){
-        Serial.println("Failed to open directory");
-        return;
-    }
-    if(!root.isDirectory()){
-        Serial.println("Not a directory");
-        return;
-    }
-
-    File file = root.openNextFile();
-    while(file){
-        if(file.isDirectory()){
-            Serial.print("  DIR : ");
-            Serial.println(file.name());
-            if(levels) {
-                this->listDir(file.path(), levels -1);
-            }
-        } else {
-            Serial.print("  FILE: ");
-            Serial.print(file.name());
-            Serial.print("  SIZE: ");
-            Serial.println(file.size());
-        }
-        file = root.openNextFile();
-    }
 }
 
 bool FileManager::createDir(const char * path){
@@ -80,7 +44,7 @@ bool FileManager::createDir(const char * path){
 
     default_log("Creating dir: " + String(path), FILEMAN_LOG_PERMISSION);
     bool success = fs.mkdir(path);
-    if(success){
+    if (success) { 
         default_log("Dir created", FILEMAN_LOG_PERMISSION);
     } else {
         log("mkdir failed", ERROR, FILEMAN_LOG_PERMISSION);
@@ -88,20 +52,84 @@ bool FileManager::createDir(const char * path){
     return success;
 }
 
-bool FileManager::removeDir(const char * path){
+
+
+
+bool FileManager::recursiveRemoveDir(const char * path){
+    fs::FS &fs = this->getFS(); 
+    default_log("Start recursive cleanup: " + String(path), FILEMAN_LOG_PERMISSION);
+
+    File dir = fs.open(path);
+    
+    // Controlli di sicurezza
+    if(!dir){
+        log("Failed to open directory", ERROR, FILEMAN_LOG_PERMISSION);
+        return false;
+    }
+    if(!dir.isDirectory()){
+        log("Path is not a directory", ERROR, FILEMAN_LOG_PERMISSION);
+        return false;
+    }
+
+    File file = dir.openNextFile();
+    while(file){
+        // Costruzione percorso sicuro
+        String filePath = String(path);
+        if (!filePath.endsWith("/")) filePath += "/";
+        filePath += String(file.name());
+
+        if(file.isDirectory()){
+            // RICORSIONE: Svuota e rimuove la sottocartella
+            if(!recursiveRemoveDir(filePath.c_str())){
+                 log("Failed to remove subdir: " + filePath, WARNING, FILEMAN_LOG_PERMISSION);
+            }
+        } else {
+            // FILE: Lo cancella direttamente
+            if(!fs.remove(filePath.c_str())){
+                 log("Failed to remove file: " + filePath, WARNING, FILEMAN_LOG_PERMISSION);
+            }
+        }
+        file = dir.openNextFile();
+    }
+    
+    // CRITICO: Chiudere la directory prima di provare a rimuoverla!
+    // Senza questo, plainRemoveDir fallirà perché la risorsa è "busy".
+    dir.close();
+
+    // Ora che è vuota, usiamo la funzione plain per finire il lavoro
+    return this->plainRemoveDir(path);
+}
+
+bool FileManager::plainRemoveDir(const char * path){
     fs::FS &fs = this->getFS(); 
 
-    default_log("Removing dir: " + String(path), FILEMAN_LOG_PERMISSION);
+    default_log("Removing dir (plain): " + String(path), FILEMAN_LOG_PERMISSION);
     
-    bool success = fs.mkdir(path);
+    // CORREZIONE: Usiamo rmdir, non mkdir!
+    bool success = fs.rmdir(path);
 
     if(success){
         default_log("Dir removed", FILEMAN_LOG_PERMISSION);
     } else {
-        log("rmdir failed", ERROR, FILEMAN_LOG_PERMISSION);
+        log("rmdir failed (directory not empty?)", ERROR, FILEMAN_LOG_PERMISSION);
     }
     return success;
 }
+
+bool FileManager::removeDir(const char * path, bool inRecursiveWay){
+    if (inRecursiveWay){
+        // delete dir and all its content
+        return this->recursiveRemoveDir(path);
+    } else {
+        // delete only dir ! and only if it is empty
+        return this->plainRemoveDir(path);
+    }
+}
+
+
+
+
+
 
 void FileManager::readFile(const char * path){
     // fs::FS fs = this->disk_interface; 
@@ -134,7 +162,7 @@ bool FileManager::writeFile(const char * path, const char * message){
 
     bool success = file.print(message);
     
-    if(success){
+    if (success) {
         default_log("File written", FILEMAN_LOG_PERMISSION);
     } else {
         log("Write failed", ERROR, FILEMAN_LOG_PERMISSION);
@@ -236,20 +264,51 @@ void FileManager::testFileIO(const char * path){
 }
 
 
-int FileManager::readFileNum(const char * dirname){
+File FileManager::getRootPointer(const char * dirname){
     fs::FS &fs = this->getFS();
 
     File root = fs.open(dirname);
     if(!root) {
         log("Failed to open directory", ERROR, FILEMAN_LOG_PERMISSION);
-        return -1;
+        return File();
     }
 
     if(!root.isDirectory()){
         log("Not a directory", WARNING, FILEMAN_LOG_PERMISSION);
-        return -1;
+        return File();
     }
 
+    return root;
+}
+
+void FileManager::listDir(const char * dirname, uint8_t levels){
+    
+    Serial.printf("Listing directory: %s\n", dirname);
+
+    File root = this->getRootPointer(dirname);
+    File file = root.openNextFile();
+
+    while(file){
+        if(file.isDirectory()){
+            default_log("  DIR : " + String(file.name()), true);
+            // default_log(, true);
+            if(levels) {
+                this->listDir(file.path(), levels -1);
+            }
+        } else {
+            default_log("  FILE: " + String(file.name()), true);
+            // default_log(, true);
+            default_log("  SIZE: " + String(file.size()), true);
+            default_log("", true);
+            // default_log(, true);
+        }
+        file = root.openNextFile();
+    }
+}
+
+int FileManager::readFileNum(const char * dirname){
+    
+    File root = this->getRootPointer(dirname);
     File file = root.openNextFile();
     int num=0;
     

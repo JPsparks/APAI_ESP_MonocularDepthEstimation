@@ -72,12 +72,13 @@ public:
     }
 
 private:
-    //note: essentially this is a clone of esp_camera/camera_fb_t
-    uint8_t* raw_data;               /*!< Pointer to the pixel data */
-    size_t len;                      /*!< Length of the buffer in bytes */
-    size_t width;                    /*!< Width of the buffer in pixels */
-    size_t height;                   /*!< Height of the buffer in pixels */
-    pic_format format;              /*!< Format of the pixel data */
+    // note: this is a kind of clone of esp_camera/camera_fb_t
+    // taken only the most meaningfull informations
+    uint8_t* raw_data;               /* <-- Pointer to the pixel data */
+    size_t len;                      /* <-- Length of the buffer in bytes */
+    size_t width;                    /* <-- Width of the buffer in pixels */
+    size_t height;                   /* <-- Height of the buffer in pixels */
+    pic_format format;               /* <-- Format of the pixel data */
     // struct timeval timestamp;
 
     bool is_pixel_addressable() const {

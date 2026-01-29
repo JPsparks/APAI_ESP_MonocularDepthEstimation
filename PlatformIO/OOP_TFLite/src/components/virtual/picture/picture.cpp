@@ -14,7 +14,7 @@ Picture::Picture(uint8_t* raw_data, size_t len, size_t width, size_t height, pic
 
 Picture::~Picture() {
     if (raw_data != nullptr) {
-        free(raw_data); //delete[] raw_data;  // TODO: check if it is better delete[] or free
-        raw_data = nullptr; // a good practice
+        free(raw_data);
+        raw_data = nullptr; // a good practice to do after a free
     }
 }

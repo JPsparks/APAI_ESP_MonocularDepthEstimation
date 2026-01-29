@@ -10,7 +10,7 @@
 #define TYPECHANGER_LOG_PERMISSION TYPECHANGER_SCALERS_LOG_CONFIG_PERMISSION
 
 
-Picture* change_byJSONtoRGB888(Picture* by);
+Picture* change_byJPEGtoRGB888(Picture* by);
 
 
 

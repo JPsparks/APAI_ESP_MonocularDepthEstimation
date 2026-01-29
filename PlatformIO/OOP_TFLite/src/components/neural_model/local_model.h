@@ -39,17 +39,14 @@ public:
             return false;
         }
 
-        this->tensor_arena = (uint8_t*)heap_caps_malloc(this->kTensorArenaSize, MALLOC_CAP_SPIRAM); //MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT
+        this->tensor_arena = (uint8_t*)heap_caps_malloc(this->kTensorArenaSize, MALLOC_CAP_SPIRAM);
         if (tensor_arena == NULL) {
             log("ERROR: PSAM (SPIRAM) allocation failed!", ERROR, LOCALMODEL_LOG_PERMISSION);
             return false;
         }
-        // Serial.printf("PSRAM allocata a 0x%X\n", (uint32_t)tensor_arena);
+        
         to_log = "PSRAM allocated at 0x" + String((uint32_t)tensor_arena) + " (Size: " + this->kTensorArenaSize + ")";
         default_log(to_log, LOCALMODEL_LOG_PERMISSION);
-
-        // this->model = tflite::GetModel(this->getModelINT8());
-        // static tflite::AllOpsResolver resolver;
 
         this->model = tflite::GetModel(this->getModelINT8());
         
@@ -77,6 +74,8 @@ public:
         log("Model uploaded and tensors allocated correctly", INFO, LOCALMODEL_LOG_PERMISSION);
         return true;
     }
+
+
     
     TfLiteTensor* inference(uint8_t* input_data) {
         if (!interpreter) {
@@ -85,10 +84,30 @@ public:
         } 
         TfLiteTensor* input_tensor = interpreter->input(0);
 
-        for (int i = 0; i < input_tensor->bytes; i++) {
-            // Esempio: Spostiamo il range da [0,255] a [-128, 127]
-            // Nota: input_tensor->data.int8 è il puntatore corretto per modelli quantizzati
-            input_tensor->data.int8[i] = (int8_t)((int)input_data[i] - 128);
+        int8_t* dst = input_tensor->data.int8;
+        const uint8_t* src = input_data;
+        size_t count = input_tensor->bytes;
+
+        size_t i = 0;
+        
+        // Cast to 32-bit pointers for block processing
+        uint32_t* dst32 = (uint32_t*)dst;
+        const uint32_t* src32 = (const uint32_t*)src;
+        
+        // Mask to flip MSB on 4 bytes simultaneously (effectively -128)
+        const uint32_t mask = 0x80808080; 
+
+        // Main loop: Process 4 bytes/pixels per cycle
+        for (; i <= count - 4; i += 4) {
+            *dst32++ = (*src32++) ^ mask;
+        }
+
+        // Handle remaining bytes (tail)
+        dst += i;
+        src += i;
+        
+        for (; i < count; i++) {
+            *dst++ = (int8_t)((*src++) ^ 0x80);
         }
 
         if (interpreter->Invoke() != kTfLiteOk) {
@@ -99,6 +118,7 @@ public:
         return interpreter->output(0);
     }
 
+    virtual uint8_t* decode_inference(TfLiteTensor* output_tensor) = 0;
 };
 
 #endif 

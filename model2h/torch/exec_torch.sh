@@ -1,6 +1,32 @@
 #!/bin/bash
 
-cd torch
-# python torch/get_siutable_dataset.py
-python get_siutable_dataset.py
-python convert_to_tflite.py
+# CONFIGURATION LOAD
+
+# Try to load config from parent directory (orchestrator style) or current (standalone)
+if [ -f "../config.sh" ]; then
+    source "../config.sh"
+elif [ -f "./config.sh" ]; then
+    source "./config.sh"
+else
+    # Warning only, assuming vars might be already exported
+    echo "Warning: config.sh not found. Relying on existing environment variables."
+fi
+
+# EXECUTION
+
+echo ""
+echo "### Executing Torch conversion (PyTorch -> Keras -> TFLite) #########"
+echo "Model Name:      $MODEL_NAME"
+echo "Weights File:    $TORCH_WEIGHTS"
+echo "Output Target:   $TFLITE_FILE"
+echo ""
+
+# Execute Python script
+python convert_pt_to_keras_to_tflite.py
+
+if [ $? -eq 0 ]; then
+    echo "Torch pipeline finished successfully."
+else
+    echo "Error in Torch pipeline."
+    exit 1
+fi

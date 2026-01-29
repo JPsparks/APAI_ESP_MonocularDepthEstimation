@@ -7,9 +7,9 @@ import sys
 import shutil
 
 # --- CONFIGURAZIONE ---
-INPUT_DIR = "raw_dataset"  # Get dir where there are raw photos (256x256 o altro)
-OUTPUT_DIR = "ready_dataset"   # Specify where you want save cleaned results (48x48)
-TARGET_SIZE = 1000                   # Quante foto generare al massimo
+INPUT_DIR = "raw_calibration_dataset"  # Get dir where there are raw photos (256x256 o altro)
+OUTPUT_DIR = "ready_dataset"           # Specify where you want save cleaned results (48x48)
+TARGET_SIZE = 1000                     # How many photo i have to use maximum (it should be enought 100 but here it is fixed a kind of "all img in INPUT_DIR you find")
 MIN_PHOTOS = 50
 
 def ensure_dir(directory):
@@ -45,7 +45,7 @@ def process_image(image_path, save_path):
 
 
 
-# Cerca formati comuni
+# Search common formats
 files = []
 for ext in ['*.jpg', '*.jpeg', '*.png', '*.bmp']:
     files.extend(glob.glob(os.path.join(INPUT_DIR, ext)))

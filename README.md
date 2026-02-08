@@ -131,9 +131,9 @@ Leveraging **MicroTFLite**'s built-in profiler integration, it was possible to a
 **Chart Analysis:**
 The pie chart (right) and logarithmic histogram (left) clearly highlight the architecture's bottlenecks on ESP32 hardware:
 
-1. **Convolution Dominance:** As expected, most cycles are spent in `CONV_2D` operations (see  color).
-2. **Upsampling Impact:** A very interesting data point is the huge impact of `TRANSPOSE_CONV` (see  color). Although numerically few compared to other layers, they occupy a third of the total inference time. These operations are crucial for the image "decoding" phase to restore it to the original (or near-original) depth map size.
-3. **Activation Efficiency:** The `LEAKY_RELU` and `PACK` operations (in  and ) have a negligible impact (< 3%), demonstrating that the overhead introduced by non-linear activation functions is minimal on this architecture.
+1. **Convolution Dominance:** As expected, most cycles are spent in `CONV_2D` operations (see color $\color{red}{\text{red}}$).
+2. **Upsampling Impact:** A very interesting data point is the huge impact of `TRANSPOSE_CONV` (see color $\color{orange}{\text{orange}}$). Although numerically few compared to other layers, they occupy a third of the total inference time. These operations are crucial for the image "decoding" phase to restore it to the original (or near-original) depth map size.
+3. **Activation Efficiency:** The `LEAKY_RELU` and `PACK` operations (in $\color{cyan}{\text{cyan}}$ and $\color{yellow}{\text{yellow}}$) have a negligible impact (< 3%), demonstrating that the overhead introduced by non-linear activation functions is minimal on this architecture.
 
 This analysis suggests that future optimizations should focus on efficient implementation or replacement (e.g., via *resize-convolution*) of Transpose Convolution layers.
 

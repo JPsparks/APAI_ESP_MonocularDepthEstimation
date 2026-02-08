@@ -133,7 +133,7 @@ The pie chart (right) and logarithmic histogram (left) clearly highlight the arc
 
 1. **Convolution Dominance:** As expected, most cycles are spent in `CONV_2D` operations (see color $\color{red}{\text{red}}$).
 2. **Upsampling Impact:** A very interesting data point is the huge impact of `TRANSPOSE_CONV` (see color $\color{orange}{\text{orange}}$). Although numerically few compared to other layers, they occupy a third of the total inference time. These operations are crucial for the image "decoding" phase to restore it to the original (or near-original) depth map size.
-3. **Activation Efficiency:** The `LEAKY_RELU` and `PACK` operations (in $\color{cyan}{\text{cyan}}$ and $\color{yellow}{\text{yellow}}$) have a negligible impact (< 3%), demonstrating that the overhead introduced by non-linear activation functions is minimal on this architecture.
+3. **Activation Efficiency:** The `LEAKY_RELU` and `PACK` operations (in $\color{azure}{\text{azure}}$ and $\color{yellow}{\text{yellow}}$) have a negligible impact (< 3%), demonstrating that the overhead introduced by non-linear activation functions is minimal on this architecture.
 
 This analysis suggests that future optimizations should focus on efficient implementation or replacement (e.g., via *resize-convolution*) of Transpose Convolution layers.
 
@@ -142,7 +142,7 @@ This analysis suggests that future optimizations should focus on efficient imple
 In addition to procedure counters and a subjective quality analysis, we can report these final metrics and specifications with the code defined and tested so far on **Freenove ESP32-S3**:
 
 * **Total Cycle Time:** A complete iteration (photo capture, preprocessing, inference, saving to SD) takes approximately **6-7 seconds** (generally around 6200ms).
-This was achieved by keeping the `TIME_COMPUTE` flag active in the `config.h` file present in the firmware.
+This was achieved by keeping the `TIME_COUNT` flag active in the `config.h` file present in the firmware.
 * **Interaction:** Acquisition is triggered by pressing the **BOOT** button integrated on the board, maximizing project portability.
 
 ---

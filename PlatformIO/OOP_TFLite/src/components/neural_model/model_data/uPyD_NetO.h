@@ -1,6 +1,7 @@
 #include "MODEL_LOADER.h"
 
-#ifdef __PW_APAI_FIN_T_H__
+#ifdef __PW_APAI_FIN_O_H__
+
 
 extern const unsigned char actModelPtr[];
 extern const unsigned int actModelLen;

@@ -14,12 +14,10 @@
 #include "camera_pins.h"
 
 
-
-
 class Camera {
   public:
     Camera(); //notice: if in future is needed to modify some parameters, it's a good idea modify in a suitable way the constructor
-    bool cameraSetup(void);  //or this method (but better the constructor)
+    bool cameraSetup(void);  //or this method (but could be better modify the constructor)
     bool take_picture(void);
     camera_fb_t* get_picture(void);
 

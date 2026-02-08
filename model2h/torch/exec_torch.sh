@@ -12,6 +12,9 @@ else
     echo "Warning: config.sh not found. Relying on existing environment variables."
 fi
 
+# NOTICE: if runned not in "conver.sh" context, 
+# could be better redefine some vars
+
 # EXECUTION
 
 echo ""
@@ -20,6 +23,7 @@ echo "Model Name:      $MODEL_NAME"
 echo "Weights File:    $TORCH_WEIGHTS"
 echo "Output Target:   $TFLITE_FILE"
 echo ""
+#these plots are usefull only too be sure that these vars have expected values
 
 # Execute Python script
 python convert_pt_to_keras_to_tflite.py

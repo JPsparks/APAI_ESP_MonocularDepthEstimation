@@ -2,9 +2,6 @@
 #define __PW_APAI_DEPTH_ESTIMATION_H__
 
 #include "local_model.h"
-// #include "model_data/depth_estimation.h"
-// #include "model_data/model_int8.h"
-#include "model_data/MODEL_SELECTOR.h"
 #include "model_data/MODEL_LOADER.h"
 
 class DepthEstimationO : public LocalModel

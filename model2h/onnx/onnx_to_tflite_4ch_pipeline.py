@@ -40,10 +40,10 @@ print(f"Output TFLite:   {OUTPUT_TFLITE}")
 print(f"Calibration Dir: {CALIBRATION_DIR}")
 print(f"Img Size:        {IMG_WIDTH}x{IMG_HEIGHT}")
 print(f"--------------------------\n")
+## second plot for a double check
 
 
-
-
+# ================= STEP DEFINITIONS =================
 def step1_patch_onnx():
     print(f"\n[1/3] Patching ONNX: 3 Channels -> 4 Channels (Fixing Ambiguity)...")
     
@@ -64,6 +64,9 @@ def step1_patch_onnx():
     
     # Set to 4 channels
     input_tensor.type.tensor_type.shape.dim[1].dim_value = 4
+    # This is crucial to avoid the confusion to understand, in other case
+    # witch 3 is (between H, W and C) 
+
     input_name = input_tensor.name
 
     # Find the first Conv layer connected to input
@@ -141,10 +144,12 @@ def step3_quantize_tflite():
             img = Image.open(path).convert("RGB")
             # Resize just in case
             img = img.resize((IMG_WIDTH, IMG_HEIGHT))
+
             
             # Convert to numpy and normalize
-            data_rgb = (np.array(img).astype(np.float32) / 127.5) - 1.0 #data_rgb = np.array(img).astype(np.float32) / 255.0 # Shape: (48, 48, 3)
+            data_rgb = np.array(img).astype(np.float32) / 255.0
             
+            # Add 4th Channel (Padding)
             # === THE TRICK: Add 4th Channel (Padding) ===
             # Pad the last axis (Channels) with 1 zero.
             # ((0,0), (0,0), (0,1)) -> Pad axis 2
@@ -182,6 +187,7 @@ def cleanup():
     if os.path.exists(PATCHED_ONNX):
         os.remove(PATCHED_ONNX)
         print(f" -> Removed {PATCHED_ONNX}")
+        
     # We usually keep the TF model for debugging, but you can uncomment below
     # import shutil
     # if os.path.exists(TF_MODEL_DIR): shutil.rmtree(TF_MODEL_DIR)

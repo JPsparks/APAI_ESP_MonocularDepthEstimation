@@ -9,37 +9,17 @@
 #include "components/virtual/picture/translation_lib/type_change.h"
 #include "components/virtual/picture/translation_lib/pickers.h"
 
-// #include "components/neural_model/depth_estimation.h"
-// #include "components/neural_model/depth_estimation_4ch.h"
 #include "components/neural_model/local_model.h"
+#include "config.h"
 
 #define BUTTON_PIN  0
 
 Camera* cam = nullptr;                // object for handling camera sensor
 BoardLed* b_led = nullptr;            // led of the ESP32-s3 model
 FileManager* fman = nullptr;          // file_manager
-LocalModel* myModel = nullptr;        // model wrapped into a class
+LocalModel* myModel = nullptr;        // neural model (so essentially MicroTFLite) wrapped into a class to make it more maintenable
 
 #define MAIN_LOG_PERMISSION true
-
-#if defined(ESP32) 
-    #include "esp_cpu.h" 
-
-    // NEVER RESET CCOUNT REGISTER IN ESP32! This could break FreeRTOS.
-    #define CPU_RESET_CYCLECOUNTER    /* Do nothing on ESP32, because is harmfull */
-    
-    // Utility macro to get act "timestamp" of cycles
-    #define CPU_GET_CYCLECOUNTER()    ESP.getCycleCount()
-
-// ARM definitions
-#elif defined(__arm__)
-    #define CPU_RESET_CYCLECOUNTER    do { ARM_DEMCR |= ARM_DEMCR_TRCENA; \
-                                           ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA; \
-                                           ARM_DWT_CYCCNT = 0; } while(0)
-    #define CPU_GET_CYCLECOUNTER()    ARM_DWT_CYCCNT
-#else
-    #error "Architecture not known"
-#endif
 
 #if defined(USING_TORCH)
     #include "components/neural_model/depth_estimation_t.h"
@@ -51,7 +31,7 @@ LocalModel* myModel = nullptr;        // model wrapped into a class
     #define MODEL_CONSTRUCTOR new DepthEstimationO()
 
 #else
-    #error "Define the path you had choosen"
+    #error "Define the conversion path you had choosen"
 #endif
 
 
@@ -90,15 +70,17 @@ void setup() {
     log("The SD is not plugged!", WARNING);
     for (j = 0; j < 3; j++) {
       b_led->ledSetColor(COLOR_ERROR); // Red = Error 
-      delay(300);
+      delay(1000);
       b_led->ledSetColor(COLOR_READY); 
     }
 
   }
 
-  // removeDir(SD_MMC, "/camera");
-  // fman->listDir(base_dir, 0);
-  // fman->removeDir(base_dir, true);
+
+  #ifdef ALWASE_CLEAN
+  fman->listDir(base_dir, 0);
+  fman->removeDir(base_dir, true);
+  #endif
   fman->createDir(base_dir); 
   fman->listDir(base_dir, 0);
 
@@ -145,7 +127,7 @@ void loop() {
         if (digitalRead(BUTTON_PIN) == LOW) {
   
           // ############## CAPTURING PHOTO ##########
-          default_log("-----> Getting picture: ", MAIN_LOG_PERMISSION); //default_log("-----> Cattura immagine: ");//Serial.print();
+          default_log("-----> Getting picture: ", MAIN_LOG_PERMISSION);
           #ifdef TIME_COUNT
           init = millis();
           #endif
@@ -184,7 +166,7 @@ void loop() {
             end_time(init, "above", &amount);
             #endif
 
-            //~~~
+            // ~~~
             default_log("-----> By JSON to RGB888: ", MAIN_LOG_PERMISSION);
             #ifdef TIME_COUNT
             init = millis();
@@ -200,7 +182,7 @@ void loop() {
             end_time(init, "above", &amount);
             #endif
 
-            //~~~
+            // ~~~
             default_log("-----> Picking pixel to adapt 48x48 format: ", MAIN_LOG_PERMISSION);
             #ifdef TIME_COUNT
             init = millis();
@@ -243,7 +225,7 @@ void loop() {
 
             } else {
                 log("Camera capture failed.", ERROR, MAIN_LOG_PERMISSION);
-                b_led->ledBlink(COLOR_ERROR, 3, 150); // show that something gone wrong
+                b_led->ledBlink(COLOR_ERROR, 3, 500); // show that something gone wrong
             }
 
 
@@ -263,13 +245,15 @@ void loop() {
               uint32_t after = CPU_GET_CYCLECOUNTER();
               uint32_t amount_cycles = after - before;
               
-              Serial.print("\n----------------------------------------------\n");
-              Serial.printf(" ----> Amount cycles needed: %u <---- \n", amount_cycles);
-              Serial.print("----------------------------------------------\n");
-
               #ifdef TIME_COUNT
               end_time(init, "above", &amount);
               #endif
+
+              myModel->logProfilingResults();
+
+              // Serial.printf("------------------------\n");
+              Serial.printf("TOTAL TENSOR CYCLES: %u  (outside LocalModel)\n", amount_cycles);
+              Serial.println("------------------------\n");
               
 
               if (output != nullptr) {
@@ -305,15 +289,12 @@ void loop() {
               }
             }
 
-            // Serial.printf("\nTotale: %u\n", amount);
             String final_time_to_log = "Totale: " + String(amount);
             log(final_time_to_log, WARNING, MAIN_LOG_PERMISSION);
 
             b_led->ledSetColor(COLOR_READY); // Return back ready
 
-            // ============================================================
-            //  PULIZIA MEMORIA (CRITICO PER EVITARE CRASH)
-            // ============================================================
+            
             default_log("Cleaning up memory...", MAIN_LOG_PERMISSION);
             if (local_pic) delete local_pic;
             if (to_save) delete to_save;
@@ -324,10 +305,10 @@ void loop() {
             to_save = nullptr;
             zipped = nullptr;
             
-            // Nota: 'tmp' non va cancellato qui perché è gestito internamente 
-            // dalla tua classe Camera (last_pick_fb viene riciclato).
           }
-        }
-    }
-}
 
+        }
+
+    }
+
+}

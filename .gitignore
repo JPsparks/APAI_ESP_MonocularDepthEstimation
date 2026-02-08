@@ -1,11 +1,19 @@
+rubbish/
+tmp/
+
+ready_dataset
+uPyD-Net.tflite
+
+*TMP*/
+*tmp*/
+
+
+*___4ch*
+
 *.tflite
 
-*rubbish*
 
+*/result_to_move/*.cpp
+*/result_to_move/*.h
 
-# */*onnx_model*/
-model_tf
-!*.onnx
-/model2h/**/*.h
-
-**/ready_dataset/
+*OLD*

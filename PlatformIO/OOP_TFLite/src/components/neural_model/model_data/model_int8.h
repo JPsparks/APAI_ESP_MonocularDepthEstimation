@@ -1,4 +1,4 @@
-#include "MODEL_SELECTOR.h"
+#include "MODEL_LOADER.h"
 
 #ifdef __PW_APAI_MODEL_2_H__
 // obtained with Torch

@@ -26,6 +26,7 @@ print(f"Output:       {OUTPUT_TFLITE}")
 print(f"Dataset:      {CALIBRATION_DIR}")
 print(f"Input Shape:  {INPUT_SHAPE}")
 print(f"---------------------\n")
+## second plot for a double check
 
 # ================= PYTORCH LAYERS (BY Teacher Assistants work) =================
 
@@ -227,7 +228,7 @@ def transfer_weights(pt_model, keras_model):
         print(f"Layer {i:>2}: Copied weights. PT shape ({','.join([f'{number:>3}' for number in pt_w.shape])}) -> Keras shape ({','.join([f'{number:>3}' for number in k_w.shape])})")
 
 
-# ================= 4. TFLITE CONVERSION =================
+# ================= TFLITE CONVERSION =================
 def representative_dataset_gen():
     search_path = os.path.join(CALIBRATION_DIR, "*.png")
     image_paths = glob.glob("../" + search_path)

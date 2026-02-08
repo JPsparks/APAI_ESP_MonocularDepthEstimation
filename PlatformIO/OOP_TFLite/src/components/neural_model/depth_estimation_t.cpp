@@ -8,10 +8,12 @@ DepthEstimationT::DepthEstimationT() {
 }
 
 TfLiteTensor* DepthEstimationT::inference(uint8_t* input_data) {
-    if (!this->interpreter) {
+    
+    if (!this->prepareInference()) {
         log("Interpreter is missing!", ERROR, LOCALMODEL_LOG_PERMISSION);
         return nullptr;
     }
+
     TfLiteTensor* input_tensor = this->interpreter->input(0);
 
     float scale = input_tensor->params.scale;
@@ -25,7 +27,6 @@ TfLiteTensor* DepthEstimationT::inference(uint8_t* input_data) {
     size_t count = input_tensor->bytes;
 
     // Pre-calculate multiplier to avoid slow division in loop
-    // Remind: (pixel / 255.0) / scale + zero_point
     float effective_scale_inv = 1.0f / (255.0f * scale);
 
     for (size_t i = 0; i < count; i++) {
@@ -55,12 +56,10 @@ TfLiteTensor* DepthEstimationT::inference(uint8_t* input_data) {
 uint8_t* DepthEstimationT::decode_inference(TfLiteTensor* output_tensor) {
     if (!this->interpreter) return nullptr;
 
-    // Fixed dimensions (match model output)
     int width = 48; 
     int height = 48;
     int total_pixels = width * height;
 
-    // Allocate buffer
     uint8_t* vis_buffer = (uint8_t*)malloc(total_pixels * sizeof(uint8_t));
     if (!vis_buffer){
         log("Memory problem!", ERROR, LOCALMODEL_LOG_PERMISSION);

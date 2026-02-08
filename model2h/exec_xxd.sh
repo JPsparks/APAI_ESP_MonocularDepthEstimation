@@ -8,7 +8,7 @@ if [ -f "./config.sh" ]; then
 elif [ -f "../config.sh" ]; then
     source "../config.sh"
 else
-    echo "❌ Error: config.sh not found."
+    echo "Error: config.sh not found."
     exit 1
 fi
 
@@ -44,7 +44,7 @@ echo " -> Output CPP:  $CPP_PATH"
 
 ## Validation ##
 if [ ! -f "$INPUT_FILE" ]; then
-    echo "❌ Error: Input file '$INPUT_FILE' not found."
+    echo "Error: Input file '$INPUT_FILE' not found."
     exit 1
 fi
 
@@ -84,7 +84,7 @@ echo "#endif" >> "$CPP_PATH"
 echo " -> Generating header file (.h)..."
 
 {
-    echo "#include \"MODEL_SELECTOR.h\""
+    echo "#include \"MODEL_LOADER.h\""
     echo ""
     echo "#ifdef ${MACRO_GUARD}"
     echo "// Identifier: ${MODEL_NAME}"

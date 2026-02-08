@@ -131,7 +131,7 @@ bool Camera::take_picture(void){
   } else {
     return false;
   }
-  // Non tenerlo "in ostaggio" fino alla prossima foto.
+  
   this->free_cam_buffer();
 
   return true;

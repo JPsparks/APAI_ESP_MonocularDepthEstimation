@@ -1,22 +1,22 @@
-// #include <Arduino.h>
+#include <Arduino.h>
 
-// void setup() {
-//   Serial.begin(115200);
+void setup() {
+  Serial.begin(115200);
 
-//   delay(5000);
-//   bool a = psramInit();
-//   // delay(5000);
+  delay(5000);
+  bool a = psramInit();
+  // delay(5000);
   
-//   if (a) {
-//       Serial.println("PSRAM OK!");
-//   } else {
-//       Serial.println("PSRAM ERROR!");
-//   }
+  if (a) {
+      Serial.println("PSRAM OK!");
+  } else {
+      Serial.println("PSRAM ERROR!");
+  }
   
-//   Serial.println("Modello pronto!");
-// }
+  Serial.println("Modello pronto!");
+}
 
-// void loop() {
-//   Serial.println("Sto bene!");
-//   delay(500);
-// }
+void loop() {
+  Serial.println("Sto bene!");
+  delay(500);
+}

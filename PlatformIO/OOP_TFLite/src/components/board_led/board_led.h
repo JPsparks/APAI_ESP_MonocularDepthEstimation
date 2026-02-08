@@ -4,8 +4,8 @@
 #include <FastLED.h>
 
 // LED WS2812 config 
-// this il also the first lib where this developement started, again taken inspiration
-// by Freenove tutorials
+// this il also the first lib where this developement started, 
+// again taken inspiration by Freenove tutorials
 #define LED_PIN      48         // This should be ok for ESP32s3 board
 #define NUM_LEDS     1          // Amount of involved leds
 #define LED_TYPE     WS2812B 

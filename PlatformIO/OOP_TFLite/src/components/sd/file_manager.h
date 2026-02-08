@@ -8,9 +8,9 @@
 #include "FS.h"
 #include "SD_MMC.h"
 
-#define SD_MMC_CMD  38 //Please do not modify it.
-#define SD_MMC_CLK  39 //Please do not modify it. 
-#define SD_MMC_D0   40 //Please do not modify it.
+#define SD_MMC_CMD  38 //Please do not modify it. (unless you don't change the board)
+#define SD_MMC_CLK  39 //Please do not modify it. (unless you don't change the board) 
+#define SD_MMC_D0   40 //Please do not modify it. (unless you don't change the board)
 
 #define FILEMAN_LOG_PERMISSION FILEMAN_LOG_CONFIG_PERMISSION
 

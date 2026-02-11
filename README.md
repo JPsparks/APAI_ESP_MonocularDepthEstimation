@@ -4,7 +4,9 @@
 > This project documents the miniaturization and deployment process of the **uPyDnet** neural network, originally developed in an academic setting and adapted here in collaboration with PhD students from the *Architectures and Platforms for Artificial Intelligence* course, on the **[Freenove ESP32-S3 CAM](https://freenove.com/fnk0085)** board. The goal is to demonstrate the feasibility of executing complex tasks like *Monocular Depth Estimation* on commercial embedded hardware, leveraging modern conversion and optimization frameworks for Edge AI.
 
 *Process demo (from flashing to execution):*
+
 ![demo](./images/gifVideo.gif)
+
 (see `./images/video.mp4` to watch better this animation)
 ## 1. Introduction
 

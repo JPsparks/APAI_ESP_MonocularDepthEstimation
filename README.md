@@ -30,7 +30,7 @@ The challenge was adapting this model through quantization and conversion to run
 The project is divided into three logical phases:
 
 1. **`model2h`**: Pipeline for model miniaturization and conversion.
-2. **`PlatformIO`**: Firmware for injecting the model and executing it on the ESP32-S3.
+2. **`PlatformIO`**: Firmware for host the model and executing it on the ESP32-S3.
 3. **`quality_check`**: Tools for verification, result visualization, and profiling.
 
 ---
@@ -67,7 +67,7 @@ The system supports two pipelines:
 
 Load the `.onnx` model into `./model2h/onnx`. This phase leverages **`onnx2tf`**, the *de facto* standard for converting complex models, mainly because it does not require redefining the model and is generally easily reusable.
 
-> **Technical note on channels:** 3x3 convolutional kernels on 3 channels (RGB) can cause memory misalignment or ambiguity in dimension interpretation (H, W, C) by converters. To overcome this, a **dummy fourth channel** was inserted before conversion. In the ESP32 firmware, this fourth channel is artificially injected into the tensor input.
+> **Technical note on channels:** 3x3 convolutional kernels on 3 channels (RGB) can cause memory misalignment or ambiguity in dimension interpretation (H, W, C) by converters. To overcome this, a **dummy fourth channel** was inserted before conversion. In the ESP32 firmware, this fourth channel is artificially added into the tensor input.
 
 > **$\color{red}{\text{WARNING}}$**: Despite multiple efforts and attempts, this path was not found to be ideal for the chosen model. The implementation adding a dummy fourth dimension has been left as it could serve as inspiration, but **for executing this project, it is suggested to follow the other path.** This will be surelly one of the main problem problem to solve as soon as possible
 
@@ -81,7 +81,7 @@ The `exec_xxd.sh` script uses `xxd` to convert the `.tflite` into a Hex Dump, se
 
 ---
 
-## 5. Injection and Execution (`PlatformIO`)
+## 5. Host and Execution (`PlatformIO`)
 
 This section describes the firmware compilable via **PlatformIO**.
 

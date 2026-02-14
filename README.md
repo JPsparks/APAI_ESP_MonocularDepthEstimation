@@ -9,7 +9,7 @@
 
 (see `./images/video.mp4` to watch better this animation)
 
-> NOTICE: go near to the end of the repo to acknowledge how to obtain the above animation!
+> NOTICE: go near to the end of the repo to replicate on your device the above animation!
 
 
 ## 1. Introduction

@@ -42,7 +42,7 @@ The firmware, contained in the `PlatformIO` folder, was developed specifically f
 ### Camera Management and Preprocessing
 
 To ensure optimal input for the neural network, the camera is configured to acquire images at **240x240** resolution. Although the sensor supports higher resolutions, this choice allows for clean integer downsampling.
-The image is reduced to **48x48** (the input required by uPyDnet) using a **5x5 sliding window** algorithm: the mask slides over the original image without overlapping, sampling exclusively the central pixel. This approach reduces computational cost compared to bilinear interpolation while retaining sufficient spatial information for the network.
+The image is reduced to **48x48** (the input required by uPyDnet) using a **5x5 sliding window** algorithm: the mask slides over the original image without overlapping, sampling exclusively the central pixel. This approach reduces computational cost compared to bilinear interpolation, gathering enought information for the network for the fact that we cannod embed lots of information into a 48x48 img shape.
 
 ---
 
@@ -88,7 +88,7 @@ This section describes the firmware compilable via **PlatformIO**.
 ### Folder Structure
 
 * **`test_code`**: Code to validate PSRAM, Camera, and SD Card. *Credits: derived from [Freenove](https://docs.freenove.com/projects/fnk0085/en/latest/) tutorials*.
-* **`OOP_NO_TFLite`**: "Skeleton" version (without neural network inference) for debugging application logic without any overhead due to the compilation of the MicroTFLite library.
+* **`OOP_NO_TFLite`**: "Skeleton", and quite "old", version (without neural network inference) for debugging application logic without any overhead due to the compilation of the MicroTFLite library.
 * **`OOP_TFLite`**: **Main Project**.
 
 ### Setup Instructions (`./OOP_TFLite`)
@@ -96,14 +96,18 @@ This section describes the firmware compilable via **PlatformIO**.
 The definitive source code is in `./PlatformIO/OOP_TFLite`.
 
 0. **Creation:** Create a PlatformIO project (select your board, but this shouldn't be a blocking choice as board specs will be overwritten by the next step), and, when it is done, essentially substitute src dir generated into the PlatformIO project with the content of `./PlatformIO/OOP_TFLite/src`.
+
 1. **Configuration:** Replace the default generated `platformio.ini` with the one present in this folder.
+
 2. **Weight Import:** Copy the generated `.h` and `.cpp` files (from `./model2h/result_to_move`) into `./src/components/neural_model/model_data/`.
-3. **Model Selection:** Go to `config.h` in the `./src` root to activate the macro for the model generated in the previous paragraph (note: it is suggested to change the automatically generated tag if not already done).
+
+3. **Model Selection:** Go to `config.h` in the `./src` root to activate the macro for the model generated in the previous paragraph (note: it is suggested to change the automatically generated tag if not already done, and if you need it).
+
 4. **Pipeline Configuration:** In `./src/config.h`, besides the correct model, you must enable the correct macro:
-* `#define USING_ONNX` (activates 4-channel padding).
-* `#define USING_TORCH` (standard 3-channel input).
+    * `#define USING_ONNX` (activates 4-channel padding).
+    * `#define USING_TORCH` (standard 3-channel input).
 
-
+    You should use ONLY one between those
 
 > **Note:** The project already includes a pre-loaded and functioning model. The steps above are necessary only to update the neural network with a custom one. But otherwise it is enought only point 0 and 1
 

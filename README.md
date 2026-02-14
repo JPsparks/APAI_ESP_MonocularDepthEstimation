@@ -8,6 +8,10 @@
 ![demo](./images/gifVideo.gif)
 
 (see `./images/video.mp4` to watch better this animation)
+
+> NOTICE: go near to the end of the repo to acknowledge how to obtain the above animation!
+
+
 ## 1. Introduction
 
 The main objective of this project is to practically apply the concepts of neural network miniaturization learned during the university course **[Architectures and Platforms for Artificial Intelligence](https://www.unibo.it/en/study/course-units-transferable-skills-moocs/course-unit-catalogue/course-unit/2025/446607), module 2**.
@@ -149,6 +153,85 @@ This was achieved by keeping the `TIME_COUNT` flag active in the `config.h` file
 * **Interaction:** Acquisition is triggered by pressing the **BOOT** button integrated on the board, maximizing project portability.
 
 
+## 7. Recap for Reproducibility
+
+Now that you understand the general structure of the repository, this section provides a step-by-step guide on how to reproduce the results or adapt the pipeline for **custom neural networks**.
+
+### Step 1: From "Your Model" to C++ Headers (`.h`)
+
+This phase transforms a trained model into a format the ESP32 can compile.
+
+1. **Prerequisites: Calibration Dataset**
+Having sample data that represents what the network will actually see is crucial for the quantization process.
+    * *For Image Tasks:* The repository already includes a robust pipeline able to generate 48x48 3-channel images, in a way that mirror how we generate those on the ESP (this is crucial to follow what i've wrote before).
+    * *For Custom Tasks:* If your network accepts different inputs (e.g., non-image data, or image with different resolutions), you must modify `./model2h/calibration/get_suitable_dataset.py`, specifically the `process_image(...)` function (and potentially its signature). Next you have to ensure the new dataset is correctly imported by the subsequent conversion scripts.
+
+2. **Conversion: From Model to `.tflite`**:
+choose the kind of conversion you want follow (with advantages/disadvantage you seen before): **ONNX** or **PyTorch weights**.
+    * **Option A: ONNX Path**
+      1. Place your `.onnx` file in `./model2h/onnx`.
+      2. Adapt the script `./model2h/onnx/onnx_to_tflite_4ch_pipeline.py` to your network's specific needs (e.g., do you strictly need the 4th dummy channel generation? Does it require different input shapes?).
+
+    * **Option B: PyTorch Path**
+      1. Place your `.pth` weights in `./model2h/torch`.
+      2. **Mandatory:** Adapt `./model2h/torch/convert_pt_to_keras_to_tflite.py` by modifying the `create_keras_model(...)` function to essentially replicate your network architecture using Keras layers. Despite the manual verbosity, this method guarantees 100% conversion reliability.
+
+3. **Header Generation: From `.tflite` to `.h`** (and .cpp):
+If the previous steps succeed, a `.tflite` file will be generated in the root of `./model2h`. The final step is running `xxd` to convert this binary into C-arrays ready for PlatformIO.
+
+#### Executing the Pipeline
+
+To automate these steps, follow this workflow:
+
+1. **Environment Setup:** Create a `venv` or `conda` environment. Activate it and install dependencies by running:
+
+```bash
+./model2h/update_env.sh
+```
+
+2. **Configuration:** If you added new files or changed filenames, update the variables in `./model2h/config.sh` to point to your new assets.
+
+3. **Execution:** Use the orchestrator script to run the entire pipeline described before automatically.
+Just follow this command
+
+```bash
+# View help and options 
+./convert.sh -h
+
+# Run the ONNX pipeline
+./convert.sh O
+# OR run the PyTorch pipeline
+./convert.sh T
+############################################
+# NOTICE: you should (and it's enought to) #
+# run ONLY ONE between above command,      #
+# unless you don't choose to use both      #
+# conversion style                         #
+############################################
+```
+
+4. **Result Retrieval:** Upon success, navigate to `./model2h/result_to_move`. You will find the generated `.h` and `.cpp` files there.
+> **Notice:** Check the macro definitions inside these files. Ensure the automatically generated variable names suit your project, or rename them if necessary.
+
+
+
+### Step 2: Let the ESP Do the Job
+
+If you are just reproducing the project, refer back to the *Setup Instructions* in Chapter 5. However, if you are deploying a **custom network for a new task**, consider the following advice:
+
+* **Code Reuse:** Leverage the existing class structure and macros defined in `.../src/components/neural_model`.
+* **Configuration:** Reuse the `platformio.ini` configuration. Significant effort went into ensuring the correct library imports and linker flags, so use it as a solid baseline.
+* **Debugging:** Use the test mains located in `./PlatformIO/test_code` to isolate issues with hardware components (Camera, SD, PSRAM) before running the full model.
+
+**Adapting to New Inputs:**
+If your network requires non-image inputs or specific normalization:
+
+1. Look at the inheritance/overriding technique used between `.../src/components/neural_model/local_model.h` (the base interface) and `depth_estimation_t.h` & `.cpp` / `depth_estimation_o.h` & `.cpp` (the concrete implementation).
+2. Create your own implementation (e.g., `my_custom_model.h`) that overrides the `inference()` and `decode_inference()` or data loading methods.
+
+> **Notice:** This project implements both ONNX and TORCH paths to demonstrate flexibility. If you bring your own network, you don't need to maintain this duality. You can simply (re)define `local_model.h` once. If you do keep multiple implementations, ensure they are correctly conditionally imported in `main.cpp` (see lines 24-34 to take inspiration).
+
+> **Crucial Warning:** I spent days debugging an issue where the ESP32 camera (at least this specific model) could not natively capture images in the exact format the network expected. Always double-check that your preprocessing code (on the ESP32) correctly adapts the raw sensor data to the input tensor requirements of your custom network, otherwise you have to preprocess differentely your data before passing them to the network.
 ---
 ## References and Publications
 
